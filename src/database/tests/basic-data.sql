@@ -1,0 +1,11 @@
+/* Right now everone who's logged in can do anything */
+
+INSERT INTO actors (profile_id,display_name,preferred_username,nickname,private_key_pem)
+VALUES
+(1,'Alex Petros','awp','Main',
+  replace('-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDbq3Z0Q5hI09Fg\nOFRnhSxVl5lKnUjDNhGkTyl0MheuepHtbp7IPx2M6c8neJoNiU+RT2eJZqRF9i2u\nDWWgQ47dOPgW2+EVc/wWe2aZ2KnoVP0Zdlx8no9i6AgPem1FKAcomjetpMyY0KTY\nqQgqLCdTL6efxms8Q2aAswZaHWSu6BKXQAXKXEa3zNRqTKazSzcmOZzn9JiKQQ97\n26LC3/62H+CuO9OfbH27VHvFCljIm6HS6YPt5X6IvYPsRpB1mWs2L5DbUcHX95Sy\nnuUsdVuil/ZqcrX/6vsYLVQAlrvtYka7GGzMELwwzjlt8/rQPLrUaviDOUpS6osc\nT2uh7Yw5AgMBAAECggEAHuX+Um+TmGLa/OrPdy7fQ+bVXrkYRq/F9CkCZAq2aV9q\nQ/h0XdGq6WrrLYUkPiqF8Pg3UGIJ/KFFCZ9uyl0rrOhaKnT2iHBOZtHSu78jHxVH\n80XtJRufKu1c/OMJQwSqBRxeyo5Mt7iusfRiEUnb+jJ7edjiCpGnIGE4z9d56wli\nK8wsCcwCMMKeMoTr+VhWaLKT+z92TGp8YzIMEzjIpswugw6e5dHY7mMO9dGaTKpf\noUaYLrJA3KivdV09ALD9C6uZVPll+BcSzHjndHLrw+vppN0aUcTtMqZjBwjfYH6j\n0XDKcBxUrIxk1KZ2Z+gsMGSExbuc0J+0e5A4AReLZQKBgQD9KUugC7WruH/4jbBK\nrRf3UGph6EZOIDk9vz3CEwZv0Mxpdvw9wgj6VD+iAEH4H2HzY1CZjOGrSl58JNd9\ngpEZqDG+0BC2SCpmGr8n1UN4lChPqJMP9rVamvb/ZLG4M14y/R/DhPt/uGa1RQbh\nA6mYOvp3fuokGXeYXb8VZG9jXwKBgQDeIgd4o5Kxtf2jqyEXBmeKDAJUCyWnFqsz\nNjG4vGDcXCvDcJwcCnL/bfgIkzb+k5naP9gLU1SThX7TGxZ5o2U/Lg2tcdjCIa4X\nUyGRS6/1zldH3vKHEN4MU072fc/4rqOCcXuowxOVz+rXxGDwtOhCU10M9LW4IBbS\nCEHU6/YPZwKBgQDGOjORGhoiX9E0Wh2UG30Mldb22t1SB0FK7Bf7gtIjc6bbXeOc\np/ZHrPg2bWU6V7hmz3kpAnshmJXrNx3UlQvwvxZUhq7PTCqG0KKlGgQ+wiPeW+zr\nLw5J59VHnRzbUr2Lx0+71MDo/QbPIUGFp0yAeo3sS2Ai7B4NHDqnEYF2mQKBgQCA\nE4jRQycCthcfdj0nBHdQfiodgSvdklF1vqqehGcoxzAoiNZJyLCTnDll4FPWJw6P\naz5LEWnzgQYl/DlSOybWbdxPBBRhon+5TSJOnyA+jxF+DAs0W0JcQvCFaPcvwKng\nPUR6grfZKj+S1tS6FOTR0TUWkkXwevgNc9tZRA/kwwKBgQDEnM3YyHJpbPr7DSt6\nM7pBzBXSB2tq/KSJygpWyjwDz3YGrLtRkRGf70zHYRLEC34ltLchmJmIkHKIoxRB\nd6RwVoXndGSsIwxJL9Ab506aRnHiN/jZPCqifgaIdOr9uVZFjNuDPMn/WOwHdKsd\n3Lp7bQySBUIoNrgDvbI3uR0fjA==\n-----END PRIVATE KEY-----\n','\n',char(10)));
+
+INSERT INTO notes (id, uuid, profile_id, content)
+VALUES (1, 1, 1, 'First post!');
+
+INSERT INTO users (username, password_hash) VALUES ('awp', 'hash');
