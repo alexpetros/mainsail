@@ -54,8 +54,8 @@ pub async fn like(db: Database, sender: LocalActorStub, note_id: &str) -> Intern
 }
 
 #[tracing::instrument(fields(note_id))]
-pub fn publish_note(db: Database, actor_uuid: &str, content: &str, in_reply_to: Option<String>) -> InternalResult<String> {
-    notes::create_and_federate(&db, actor_uuid, content, in_reply_to)
+pub fn publish_note(db: Database, actor_id: &str, content: &str, in_reply_to: Option<String>) -> InternalResult<String> {
+    notes::create_and_federate(&db, actor_id, content, in_reply_to)
         .inspect(|note_id| { tracing::Span::current().record("note_id", note_id); })
         .inspect_err(|e| { tracing::error!("{e:?}"); })
 }

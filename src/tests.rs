@@ -2,7 +2,7 @@ use data::new_test_actor;
 use openssl::pkey::{PKey, Private};
 use data::{EXT_ACTOR_1, EXT_NOTE_1, PRIVATE_KEY_STR};
 use crate::activitypub::objects::actor::Actor;
-use crate::local::actors::{LocalActorStub, new_local_actor_with_uuid};
+use crate::local::actors::{LocalActorStub, create_local_actor_with_uuid};
 use crate::local::notes;
 use crate::local::InternalResult;
 use crate::database::Database;
@@ -32,7 +32,7 @@ pub fn add_test_data(db: &mut Database) {
     let actor_domain = "example.com";
     db.set_domain(actor_domain).unwrap();
 
-    let actor_id = new_local_actor_with_uuid(db, "1", "awp", "Alex Petros", "Main").unwrap();
+    let actor_id = create_local_actor_with_uuid(db, "1", "awp", "Alex Petros", "Main").unwrap();
     let pkey = PKey::generate_x25519().unwrap();
     let sender = LocalActorStub { id: actor_id, domain: actor_domain.to_string(), pkey };
 

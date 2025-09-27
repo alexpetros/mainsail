@@ -1,11 +1,11 @@
-use rusqlite::OptionalExtension;
+use rusqlite::{OptionalExtension, Params};
 use tracing::warn;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use crate::activitypub::objects::tags::{Mention, Tag};
 use crate::activitypub::objects::activities::create::CreateActivity;
 use crate::activitypub::objects::note::Note;
-use crate::error::{bad_request, MainsailError};
+use crate::error::MainsailError;
 use crate::local::InternalResult;
 use crate::database::Database;
 use rusqlite::Error::QueryReturnedNoRows;
@@ -98,7 +98,7 @@ fn create(db: &Database, sender: &LocalActorStub, content: &str, in_reply_to: Op
 }
 
 pub fn insert_single_note(db: &Database, sender: &LocalActorStub, note: Note) -> InternalResult<Note> {
-    let mut query = db.prepare(
+    let mut query = db.prepare_cached(
         "INSERT INTO notes (id, uuid, actor_id, object) VALUES (?1, ?2, ?3, ?4)"
     )?;
 
@@ -153,9 +153,10 @@ pub fn create_with_uuid(db: &Database, uuid: String, sender: &LocalActorStub, co
     get_note(db, &uuid)?.ok_or(InternalServerError(format!("Error creating note {uuid}")))
 }
 
-pub fn create_and_federate(db: &Database, actor_uuid: &str, content: &str, in_reply_to: Option<String>) -> InternalResult<String> {
-    let internal_actor = LocalActorStub::get(db, actor_uuid)
-        .ok_or(bad_request("Profile not found"))?;
+pub fn create_and_federate(db: &Database, actor_id: &str, content: &str, in_reply_to: Option<String>) -> InternalResult<String> {
+    let internal_actor = LocalActorStub::get(db, actor_id).ok_or_else(|| {
+        MainsailError::BadRequest(format!("Actor {actor_id} not found"))
+    })?;
     let note = create(db, &internal_actor, content, in_reply_to)?;
     let note_uuid = note.uuid.clone();
 
@@ -202,16 +203,21 @@ pub fn get_note(db: &Database, note_uuid: &str) -> InternalResult<Option<Interna
     Ok(Some(internal_note))
 }
 
-pub fn get_notes(db: &Database, actor_id: &str) -> InternalResult<Vec<InternalNote>> {
+pub fn get_notes_by_actor_id(db: &Database, actor_id: &str) -> InternalResult<Vec<InternalNote>> {
+    let stmt = "SELECT uuid, object FROM notes WHERE notes.actor_id = ?1 ORDER BY object -> 'published' DESC";
+    let params = [actor_id];
+    query_notes(db, stmt, params)
+}
+
+fn query_notes<P: Params>(db: &Database, stmt: &str, params: P) -> Result<Vec<InternalNote>, MainsailError> {
     struct RawNote {
+
         uuid: String,
         object: String,
     }
 
-    let mut stmt = db.prepare("
-        SELECT uuid, object FROM notes WHERE notes.actor_id = ?1 ORDER BY object -> 'published' DESC
-    ")?;
-    let rows = stmt.query_map([actor_id], |row| {
+    let mut stmt = db.prepare(stmt)?;
+    let rows = stmt.query_map(params, |row| {
         let uuid: String = row.get("uuid")?;
         let object: String = row.get("object")?;
         let note = RawNote { uuid, object };
@@ -238,7 +244,8 @@ pub mod tests {
     #[test]
     fn get_notes() {
         let (db, _) = get_memory_db();
-        let notes = super::get_notes(&db, ACTOR_ID).unwrap();
+        let notes = super::get_notes_by_actor_id(&db, ACTOR_ID).unwrap();
         assert_eq!(notes.len(), 3);
+
     }
 }

@@ -4,7 +4,7 @@ use http::Uri;
 use url::Url;
 use rusqlite::Error::QueryReturnedNoRows;
 use uuid::Uuid;
-use crate::local::notes::get_notes;
+use crate::local::notes::get_notes_by_actor_id;
 use crate::activitypub::{AtContext, Context};
 use crate::activitypub::objects::activities::create::CreateActivity;
 use crate::activitypub::objects::collections::{OrderedCollection, OrderedCollectionPage, OutboxPage, PageOrLink};
@@ -46,7 +46,7 @@ impl LocalActorStub {
     }
 }
 
-pub fn new_local_actor(db: &Database, preferred_username: &str, display_name: &str, nickname: &str) -> InternalResult<LocalActorStub> {
+pub fn create_local_actor(db: &Database, preferred_username: &str, display_name: &str, nickname: &str) -> InternalResult<LocalActorStub> {
     let domain: String = db.query_row("SELECT value FROM globals WHERE key = 'domain'", (), |row| row.get(0))?;
     let pkey = generate_pkey_string()?;
     let uuid = Uuid::new_v4().to_string();
@@ -62,7 +62,7 @@ pub fn new_local_actor(db: &Database, preferred_username: &str, display_name: &s
         .ok_or(MainsailError::InternalServerError(format!("Failed to get actor {id} after creating it")))
 }
 
-pub fn new_local_actor_with_uuid(db: &Database, uuid: &str, preferred_username: &str, display_name: &str, nickname: &str) -> InternalResult<String> {
+pub fn create_local_actor_with_uuid(db: &Database, uuid: &str, preferred_username: &str, display_name: &str, nickname: &str) -> InternalResult<String> {
     let domain: String = db.query_row("SELECT value FROM globals WHERE key = 'domain'", (), |row| row.get(0))?;
     let pkey = generate_pkey_string()?;
     let id = id(&domain, uuid);
@@ -121,7 +121,7 @@ pub fn get_outbox(db: &Database, actor_id: &str) -> InternalResult<OrderedCollec
 
 pub fn get_outbox_page(db: &Database, actor_id: &str, _page_num: usize) -> InternalResult<OutboxPage> {
     let actor = get_actor_by_id(db, actor_id)?;
-    let notes = get_notes(db, actor_id)?;
+    let notes = get_notes_by_actor_id(db, actor_id)?;
 
     let page_url = format!("{}?page=1", actor.outbox);
     let items: Vec<CreateActivity> = notes.into_iter()
@@ -236,9 +236,9 @@ pub fn get_server_actor(db: &Database) -> InternalResult<Actor> {
     Ok(actor)
 }
 
-pub fn get_actor_notes(db: &Database, actor_uuid: &str) -> InternalResult<Vec<TimelineEntry>> {
-    let actor = get_actor_by_uuid(db, actor_uuid)?;
-    let notes = notes::get_notes(db, &actor.id)?;
+pub fn get_actor_notes(db: &Database, actor_id: &str) -> InternalResult<Vec<TimelineEntry>> {
+    let actor = get_actor_by_id(db, actor_id)?;
+    let notes = notes::get_notes_by_actor_id(db, &actor.id)?;
 
     // TODO: do this without cloning the actor, maybe?
     let items = notes.into_iter().map(|note| {

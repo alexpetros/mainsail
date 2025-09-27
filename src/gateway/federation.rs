@@ -9,10 +9,10 @@ use crate::activitypub::objects::activities::Activity;
 fn get_follower_inboxes(db: &Database, sender: &LocalActorStub) -> InternalResult<Vec<String>> {
     let mut query = db.prepare(
         "
-        SELECT sender_id, object -> 'inbox' as inbox, type
+        SELECT sender_id, object ->> 'inbox' as inbox, type
         FROM followers
         LEFT JOIN cache ON followers.sender_id = cache.actor
-        WHERE followers.actor_id = ?1 AND cache.type = '\"Person\"'
+        WHERE followers.actor_id = ?1 AND cache.type = 'Person'
         ",
     )?;
 
@@ -29,7 +29,6 @@ fn get_follower_inboxes(db: &Database, sender: &LocalActorStub) -> InternalResul
 /// Send a new note out to all subscribed inboxes
 pub fn federate_note(db: &Database, sender: LocalActorStub, note: InternalNote) -> InternalResult<()> {
     let inboxes = get_follower_inboxes(db, &sender)?;
-
     tokio::spawn(async move {
         let create_activity = note.into_create();
         let body = json!(create_activity).to_string();
@@ -55,8 +54,15 @@ pub fn federate_activity(db: &Database, sender: LocalActorStub, activity: impl A
 async fn federate(sender: LocalActorStub, body: String, inboxes: Vec<String>) {
     for inbox in inboxes {
         let body = body.to_owned();
-        let inbox_url = inbox.parse().unwrap();
-        tracing::info!("Federating to {} as {}", body, sender.id);
+        let inbox_url = match inbox.parse() {
+            Ok(inbox_url) => inbox_url,
+            Err(e) => {
+                tracing::warn!("Unable to parse inbox \"{inbox}\": {e}");
+                continue;
+            }
+        };
+
+        tracing::info!("Federating to {} as {}", inbox, sender.id);
         let res = post_to_ap(&inbox_url, &sender, body).await;
         let res = match res {
             Ok(r) => r,
