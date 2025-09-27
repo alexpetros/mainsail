@@ -1,13 +1,12 @@
+> [!CAUTION]
+> This software is shared for educational purposes and I do not recommend integrating it at this time.
+> It has no stable interfaces and many of the statements in this README are aspirational.
+
 # Mainsail
 
 Mainsail adds drop-in ActivityPub support to a web server.
 You don't need to think about the database, the protocol, or handling requests.
 You just add the Mainsail layer and you're good to go.
-
-This is not even alpha software; it has no stable interfaces; many of the statements in this README are aspirational.
-Although I do plan to publish this properly, I do not recommend using it at this time.
-
-It might, at this stage, have some educational value if you are interested in implementing ActivityPub.
 
 ## Why
 
